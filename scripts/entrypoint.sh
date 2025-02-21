@@ -36,6 +36,18 @@ parse_safe() {
   echo "${value:-0}" # Default to 0 if empty/null
 }
 
+RATE_LIMIT=$(parse_safe '.rate.limit')
+RATE_REMAINING=$(parse_safe '.rate.remaining')
+RATE_RESET=$(parse_safe '.rate.reset')
+
+GRAPHQL_LIMIT=$(parse_safe '.graphql.limit')
+GRAPHQL_REMAINING=$(parse_safe '.graphql.remaining')
+GRAPHQL_RESET=$(parse_safe '.graphql.reset')
+
+SEARCH_LIMIT=$(parse_safe '.search.limit')
+SEARCH_REMAINING=$(parse_safe '.search.remaining')
+SEARCH_RESET=$(parse_safe '.search.reset')
+
 format_time() {
   if [ "$1" -gt 0 ]; then
     date -u -d "@$1" "+%Y-%m-%d %H:%M:%S UTC"
@@ -43,16 +55,6 @@ format_time() {
     echo "N/A"
   fi
 }
-
-RATE_LIMIT=$(parse_safe '.rate.limit')
-RATE_REMAINING=$(parse_safe '.rate.remaining')
-RATE_RESET=$(parse_safe '.rate.reset')
-GRAPHQL_LIMIT=$(parse_safe '.graphql.limit')
-GRAPHQL_REMAINING=$(parse_safe '.graphql.remaining')
-GRAPHQL_RESET=$(parse_safe '.graphql.reset')
-SEARCH_LIMIT=$(parse_safe '.search.limit')
-SEARCH_REMAINING=$(parse_safe '.search.remaining')
-SEARCH_RESET=$(parse_safe '.search.reset')
 
 RESET_TIME=$(format_time "$RATE_RESET")
 GRAPHQL_RESET_TIME=$(format_time "$GRAPHQL_RESET")
@@ -65,27 +67,31 @@ echo " GraphQL:   $GRAPHQL_REMAINING / $GRAPHQL_LIMIT  (Resets at $GRAPHQL_RESET
 echo " Search:    $SEARCH_REMAINING / $SEARCH_LIMIT  (Resets at $SEARCH_RESET_TIME)"
 echo "--------------------------------------------"
 
-if [ "$RATE_REMAINING" -le 0 ]; then
+# Core API Limits
+if [ "$RATE_LIMIT" -gt 0 ] && [ "$RATE_REMAINING" -le 0 ]; then
   echo "::error::❌ GitHub API Rate Limit has been fully exhausted!"
   exit 1
-elif [ "$RATE_REMAINING" -lt 100 ]; then
+elif [ "$RATE_LIMIT" -gt 0 ] && [ "$RATE_REMAINING" -lt 100 ]; then
   echo "::warning::⚠️ GitHub API Rate Limit is low ($RATE_REMAINING remaining)!"
 fi
 
-if [ "$GRAPHQL_REMAINING" -le 0 ]; then
+# GraphQL Limits
+if [ "$GRAPHQL_LIMIT" -gt 0 ] && [ "$GRAPHQL_REMAINING" -le 0 ]; then
   echo "::error::❌ GitHub GraphQL API Rate Limit has been fully exhausted!"
   exit 1
-elif [ "$GRAPHQL_REMAINING" -lt 100 ]; then
+elif [ "$GRAPHQL_LIMIT" -gt 0 ] && [ "$GRAPHQL_REMAINING" -lt 100 ]; then
   echo "::warning::⚠️ GitHub GraphQL API Rate Limit is low ($GRAPHQL_REMAINING remaining)!"
 fi
 
-if [ "$SEARCH_REMAINING" -le 0 ]; then
+# Search Limits
+if [ "$SEARCH_LIMIT" -gt 0 ] && [ "$SEARCH_REMAINING" -le 0 ]; then
   echo "::error::❌ GitHub Search API Rate Limit has been fully exhausted!"
   exit 1
-elif [ "$SEARCH_REMAINING" -lt 100 ]; then
+elif [ "$SEARCH_LIMIT" -gt 0 ] && [ "$SEARCH_REMAINING" -lt 100 ]; then
   echo "::warning::⚠️ GitHub Search API Rate Limit is low ($SEARCH_REMAINING remaining)!"
 fi
 
+# GitHub Step Summary
 echo "# :bar_chart: GitHub API Rate Limit Summary" >>$GITHUB_STEP_SUMMARY
 echo "" >>$GITHUB_STEP_SUMMARY
 echo "| API Type  | Remaining | Limit | Reset Time (UTC) |" >>$GITHUB_STEP_SUMMARY
@@ -95,13 +101,13 @@ echo "| GraphQL   | $GRAPHQL_REMAINING | $GRAPHQL_LIMIT | $GRAPHQL_RESET_TIME |"
 echo "| Search    | $SEARCH_REMAINING | $SEARCH_LIMIT | $SEARCH_RESET_TIME |" >>$GITHUB_STEP_SUMMARY
 echo "" >>$GITHUB_STEP_SUMMARY
 
-if [ "$RATE_REMAINING" -lt 100 ]; then
+if [ "$RATE_LIMIT" -gt 0 ] && [ "$RATE_REMAINING" -lt 100 ]; then
   echo "⚠️ **Warning:** GitHub API rate limit is low ($RATE_REMAINING remaining)." >>$GITHUB_STEP_SUMMARY
 fi
-if [ "$GRAPHQL_REMAINING" -lt 100 ]; then
+if [ "$GRAPHQL_LIMIT" -gt 0 ] && [ "$GRAPHQL_REMAINING" -lt 100 ]; then
   echo "⚠️ **Warning:** GitHub GraphQL API rate limit is low ($GRAPHQL_REMAINING remaining)." >>$GITHUB_STEP_SUMMARY
 fi
-if [ "$SEARCH_REMAINING" -lt 100 ]; then
+if [ "$SEARCH_LIMIT" -gt 0 ] && [ "$SEARCH_REMAINING" -lt 100 ]; then
   echo "⚠️ **Warning:** GitHub Search API rate limit is low ($SEARCH_REMAINING remaining)." >>$GITHUB_STEP_SUMMARY
 fi
 
