@@ -1,0 +1,18 @@
+name: "Check GitHub API Rate Limit"
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  check-rate-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        id: checkout-repo
+        uses: actions/checkout@v4
+
+      - name: Run GitHub API Rate Limit Check
+        id: check-rate-limit
+        uses: ./
+        with:
+          github-token: ${{ github.token }}
