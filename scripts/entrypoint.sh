@@ -111,4 +111,4 @@ if [ "$SEARCH_LIMIT" -gt 0 ] && [ "$SEARCH_REMAINING" -lt 100 ]; then
   echo "⚠️ **Warning:** GitHub Search API rate limit is low ($SEARCH_REMAINING remaining)." >>$GITHUB_STEP_SUMMARY
 fi
 
-echo "⏳ API limits reset periodically. Plan requests accordingly." >>$GITHUB_STEP_SUMMARY
+echo "⏳ API limits reset hourly. Plan requests accordingly." >>$GITHUB_STEP_SUMMARY

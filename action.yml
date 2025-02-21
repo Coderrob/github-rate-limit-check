@@ -14,9 +14,13 @@
 # limitations under the License.
 #
 ---
-name: GitHub API Rate Limit Check
-description: Checks the GitHub API rate limit, formats the output, and provides warnings/errors.
 author: "Robert Lindley (coderrob)"
+name: GitHub API Rate Limit Check
+description: This GitHub Action provides an automated, real-time check of your
+  repository's GitHub API rate limits, giving you instant visibility
+  into your API consumption. With detailed reporting and proactive
+  alerts, you can prevent unexpected disruptions and optimize API
+  usage in your workflows.
 
 branding:
   icon: "bar-chart"
@@ -26,7 +30,7 @@ inputs:
   github-token:
     default: ${{ github.token }}
     description: GitHub Token for API authentication
-    required: true
+    required: false
 
 runs:
   using: composite
