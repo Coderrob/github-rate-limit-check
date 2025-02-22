@@ -16,11 +16,9 @@
 ---
 author: "Robert Lindley (coderrob)"
 name: GitHub API Rate Limit Check
-description: This GitHub Action provides an automated, real-time check of your
-  repository's GitHub API rate limits, giving you instant visibility
-  into your API consumption. With detailed reporting and proactive
-  alerts, you can prevent unexpected disruptions and optimize API
-  usage in your workflows.
+description: GitHub Action checks your GitHub API rate limits in
+  real-time, offering a usage summary & proactive alerts to
+  optimize usage.
 
 branding:
   icon: "bar-chart"
