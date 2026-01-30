@@ -1,14 +1,42 @@
 name: "Check GitHub API Rate Limit"
 
 on:
+  push:
+    branches: [main, pr-template]
+  pull_request:
+    branches: [main, pr-template]
   workflow_dispatch: {}
 
 jobs:
-  check-rate-limit:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        id: checkout-repo
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: "./scripts"
+          check_together: "yes"
+          additional_files: "./scripts/entrypoint.sh ./scripts/release.sh"
+
+  test-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run Unit Tests
+        run: ./__tests__/test_entrypoint.sh
+
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Run GitHub API Rate Limit Check
@@ -16,3 +44,52 @@ jobs:
         uses: ./
         with:
           github-token: ${{ github.token }}
+
+      - name: Verify Action Output
+        run: |
+          # Check that step summary was created and contains expected content
+          if [[ ! -f "$GITHUB_STEP_SUMMARY" ]]; then
+            echo "::error::Step summary file not found"
+            exit 1
+          fi
+
+          # Check for expected header
+          if ! grep -q "GitHub API Rate Limit Summary" "$GITHUB_STEP_SUMMARY"; then
+            echo "::error::Expected summary header not found"
+            exit 1
+          fi
+
+          # Check for table headers
+          if ! grep -q "| API Type  | Remaining | Limit | Reset Time (UTC) |" "$GITHUB_STEP_SUMMARY"; then
+            echo "::error::Expected table headers not found"
+            exit 1
+          fi
+
+          # Check that rate_limit.json was created and is valid JSON
+          if [[ ! -f "rate_limit.json" ]]; then
+            echo "::error::rate_limit.json not found"
+            exit 1
+          fi
+
+          if ! jq empty rate_limit.json >/dev/null 2>&1; then
+            echo "::error::rate_limit.json is not valid JSON"
+            exit 1
+          fi
+
+          # Verify JSON structure contains expected keys (without checking values)
+          if ! jq -e '.rate.limit and .rate.remaining and .rate.reset' rate_limit.json >/dev/null; then
+            echo "::error::Expected rate limit fields not found in JSON"
+            exit 1
+          fi
+
+          if ! jq -e '.graphql.limit and .graphql.remaining and .graphql.reset' rate_limit.json >/dev/null; then
+            echo "::error::Expected GraphQL limit fields not found in JSON"
+            exit 1
+          fi
+
+          if ! jq -e '.search.limit and .search.remaining and .search.reset' rate_limit.json >/dev/null; then
+            echo "::error::Expected search limit fields not found in JSON"
+            exit 1
+          fi
+
+          echo "✅ Action output verification passed"

@@ -29,6 +29,10 @@ inputs:
     default: ${{ github.token }}
     description: GitHub Token for API authentication
     required: false
+  warning-threshold:
+    default: "100"
+    description: The remaining API calls threshold below which a warning is issued
+    required: false
 
 runs:
   using: composite
@@ -36,4 +40,6 @@ runs:
     - name: Call GitHub Rate Limit API
       id: github-rate-limit-api
       shell: bash
+      env:
+        WARNING_THRESHOLD: ${{ inputs.warning-threshold }}
       run: bash "${{ github.action_path }}/scripts/entrypoint.sh" "${{ inputs.github-token }}"

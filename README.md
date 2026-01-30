@@ -1,16 +1,25 @@
+<p align="center">
+  <img
+    src="public/img/github-rate-limit-check-logo-small.png"
+    alt="Barrel Roll logo"
+  />
+</p>
+
 # 📊 GitHub API Rate Limit Check
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## **Description**
 
-This GitHub Action provides an **automated, real-time check** of your repository’s GitHub API rate limits, giving you **instant visibility** into your API consumption. With detailed reporting and proactive alerts, you can **prevent unexpected disruptions** and **optimize API usage** in your workflows.
+This GitHub Action provides an **automated, real-time check** of your repository's GitHub API rate limits, giving you **instant visibility** into your API consumption. With detailed reporting and proactive alerts, you can **prevent unexpected disruptions** and **optimize API usage** in your workflows.
 
 Designed for **reliability and clarity**, this composite action:
 
-- Calls the **GitHub Rate Limit API** and extracts real-time usage metrics.
-- Formats and logs the results professionally in both **workflow logs** and **GitHub Step Summary**.
-- **Warns** when remaining API requests fall below a threshold (default: `100`).
-- **Fails fast** when limits are exhausted to avoid unexpected workflow failures.
-- **Handles missing data gracefully**, preventing false alarms from disabled or unavailable API endpoints.
+- Calls the **GitHub Rate Limit API** and extracts real-time usage metrics
+- Formats and logs the results professionally in both **workflow logs** and **GitHub Step Summary**
+- **Warns** when remaining API requests fall below a configurable threshold (default: `100`)
+- **Fails fast** when limits are exhausted to avoid unexpected workflow failures
+- **Handles missing data gracefully**, preventing false alarms from disabled or unavailable API endpoints
 
 Whether you're running frequent automation, managing API-driven integrations, or monitoring GitHub resources, this action ensures you **stay informed and in control** of your API quota.
 
@@ -44,9 +53,10 @@ jobs:
 
       - name: Run GitHub API Rate Limit Check
         id: check-rate-limit
-        uses: coderrob/github-api-rate-limit-check@v1
+        uses: coderrob/github-api-rate-limit-check@main
         with:
           github-token: ${{ github.token }}
+          warning-threshold: 50  # Optional: warn when remaining calls drop below 50
 ```
 
 ---
@@ -57,7 +67,7 @@ jobs:
 2. **Parses and Processes Data** → Extracts core, GraphQL, and search API quotas.
 3. **Logs Results** → Displays a structured **table** in `GITHUB_STEP_SUMMARY` and console logs.
 4. **Triggers Alerts**:
-   - **Warning** (`⚠️`) if remaining API requests **drop below 100**.
+   - **Warning** (`⚠️`) if remaining API requests **drop below the configured threshold** (default: 100).
    - **Error** (`❌`) if limits are **fully exhausted** (only if that API type is enabled).
 5. **Fails the Workflow (if needed)** → Prevents unintended execution when API access is unavailable.
 
@@ -70,9 +80,9 @@ jobs:
 ```bash
 GitHub API Rate Limit Status:
 --------------------------------------------
- Core API:  85 / 5000  (Resets at 2025-02-20 15:00:00 UTC)
- GraphQL:   4500 / 5000  (Resets at 2025-02-20 15:00:00 UTC)
- Search:    0 / 30  (Resets at 2025-02-20 15:00:00 UTC)
+ Core API:  85 / 5000  (Resets at 2026-01-29 15:00:00 UTC)
+ GraphQL:   4500 / 5000  (Resets at 2026-01-29 15:00:00 UTC)
+ Search:    0 / 30  (Resets at 2026-01-29 15:00:00 UTC)
 --------------------------------------------
 ⚠️ GitHub API Rate Limit is low (85 remaining)!
 ❌ GitHub Search API Rate Limit has been fully exhausted!
@@ -84,22 +94,23 @@ GitHub API Rate Limit Status:
 
 | API Type     | Remaining | Limit | Reset Time (UTC)    |
 | ------------ | --------- | ----- | ------------------- |
-| **Core API** | **85**    | 5000  | 2025-02-20 15:00:00 |
-| **GraphQL**  | **4500**  | 5000  | 2025-02-20 15:00:00 |
-| **Search**   | **0**     | 30    | 2025-02-20 15:00:00 |
+| **Core API** | **85**    | 5000  | 2026-01-29 15:00:00 |
+| **GraphQL**  | **4500**  | 5000  | 2026-01-29 15:00:00 |
+| **Search**   | **0**     | 30    | 2026-01-29 15:00:00 |
 
 ⚠️ **Warning:** GitHub API rate limit is low (85 remaining).  
 ❌ **Error:** GitHub Search API rate limit has been fully exhausted.
 
-⏳ API limits reset periodically. Plan requests accordingly.
+⏳ API limits reset hourly. Plan requests accordingly.
 
 ---
 
 ## 🛠 **Inputs**
 
-| Name           | Required | Description                                                  |
-| -------------- | -------- | ------------------------------------------------------------ |
-| `github-token` | ✅ Yes   | GitHub token used for authentication (`${{ github.token }}`) |
+| Name | Required | Default | Description |
+| ---- | -------- | ------- | ----------- |
+| `github-token` | Yes | - | GitHub token used for authentication (`${{ github.token }}`) |
+| `warning-threshold` | No | `100` | Warning threshold for remaining API calls before issuing alerts |
 
 ---
 
@@ -121,3 +132,15 @@ This action gives you the **power to monitor, manage, and prevent API failures b
 
 - [GitHub API Rate Limits Docs](https://docs.github.com/en/rest/rate-limit)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+---
+
+## 🧪 **Testing**
+
+This action includes comprehensive tests to ensure reliability:
+
+- **Unit Tests**: Validate core functions with mock data
+- **Integration Tests**: Verify end-to-end functionality in CI
+- **Linting**: ShellCheck for script quality
+
+Tests run automatically on pushes and pull requests via the [CI workflow](.github/workflows/ci.yml). See [`__tests__/`](../__tests__/) for details.
